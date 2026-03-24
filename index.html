@@ -39,7 +39,6 @@
 
         // === ICON COMPONENTS ===
         const Play = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>;
-        const Pause = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>;
         const CheckCircle = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
         const Music = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>;
         const Users = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
@@ -55,6 +54,7 @@
         const MapPin = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
         const ZoomIn = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>;
         const X = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+        const ExternalLink = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>;
 
         // === FULL SCREEN IMAGE OVERLAY (LIGHTBOX) ===
         function ImageModal({ src, onClose }) {
@@ -81,83 +81,18 @@
           );
         }
 
-        // === 30 SECOND AUDIO SNIPPET PLAYER ===
-        function AudioSnippet({ src }) {
-          const audioRef = useRef(null);
-          const [isPlaying, setIsPlaying] = useState(false);
-          const [progress, setProgress] = useState(0);
-          const [hasError, setHasError] = useState(false);
-
-          const togglePlay = () => {
-            if (!audioRef.current) return;
-
-            if (isPlaying) {
-              audioRef.current.pause();
-              setIsPlaying(false);
-            } else {
-              setHasError(false);
-              setIsPlaying(true);
-              const playPromise = audioRef.current.play();
-              if (playPromise !== undefined) {
-                playPromise.catch(e => {
-                  console.error("Audio playback failed:", e);
-                  setIsPlaying(false);
-                  setHasError(true);
-                });
-              }
-            }
-          };
-
-          const handleTimeUpdate = () => {
-            if (!audioRef.current) return;
-            const time = audioRef.current.currentTime;
-            
-            setProgress((time / 30) * 100);
-            
-            // Force stop at 30 seconds
-            if (time >= 30) {
-              audioRef.current.pause();
-              audioRef.current.currentTime = 0;
-              setIsPlaying(false);
-              setProgress(0);
-            }
-          };
-
-          const handleEnded = () => {
-            setIsPlaying(false);
-            setProgress(0);
-          };
-
+        // === YOUTUBE MUSIC LINK COMPONENT ===
+        function YoutubeMusicLink({ query }) {
+          const url = `https://music.youtube.com/search?q=${encodeURIComponent(query)}`;
           return (
-            <div className="mt-4 flex flex-col gap-1">
-              <div className="flex items-center gap-3 bg-indigo-50 p-3 rounded-xl border border-indigo-200 shadow-sm">
-                <button 
-                  onClick={togglePlay} 
-                  className="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 hover:scale-105 transition shadow-sm flex-shrink-0"
-                >
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
-                </button>
-                <div className="flex-grow">
-                  <p className="text-xs font-bold text-indigo-900 mb-1 uppercase tracking-wider flex items-center gap-1">
-                    <Music className="w-3 h-3" /> 30-Second Sneak Peek
-                  </p>
-                  <div className="w-full bg-indigo-200 h-2.5 rounded-full overflow-hidden">
-                    <div className="bg-indigo-500 h-full transition-all duration-100 ease-linear" style={{ width: `${progress}%` }}></div>
-                  </div>
-                </div>
-                <audio 
-                  ref={audioRef} 
-                  onTimeUpdate={handleTimeUpdate} 
-                  onEnded={handleEnded} 
-                  onError={() => { setIsPlaying(false); setHasError(true); }}
-                  preload="metadata"
-                >
-                  <source src={src} />
-                  <source src={src.replace('.m4a', '.mp3')} />
-                </audio>
-              </div>
-              {hasError && <p className="text-xs text-red-500 italic px-2 font-medium">Preview unavailable. The audio link may be blocked or expired.</p>}
-            </div>
+            <a 
+              href={url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="mt-4 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 p-3 rounded-xl border border-red-200 transition-colors shadow-sm font-bold w-full"
+            >
+              <Play className="w-5 h-5 fill-red-700" /> Listen on YouTube Music <ExternalLink className="w-4 h-4 ml-1 opacity-70" />
+            </a>
           );
         }
 
@@ -221,7 +156,7 @@
                 id: "bartok",
                 name: "Béla Bartók",
                 imageName: "Béla Bartók.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/cb/2a/82/cb2a829e-87fc-2a4b-9e4a-5f3366cde9db/mzaf_5883709669524021703.plus.aac.p.m4a",
+                youtubeQuery: "Béla Bartók Romanian Folk Dances",
                 piece: "Romanian Folk Dances",
                 bio: "By the time he was in his early 20s, Béla Bartók was a very skilled composer, writing music in the style of famous German composers. But something was missing—his music didn't yet feel fully alive. Then, he discovered the folk music of his homeland, and everything changed! He became fascinated with the songs and dances of the people around him. Bartók traveled to villages in Hungary, Romania, and other nearby places, collecting thousands of folk tunes. These songs inspired him and made his music even more exciting. From then on, the rhythms, melodies, and feelings of folk music appeared in everything he wrote.",
                 elements: ["Rhythms that feel different: bouncy, uneven, or 'skip around'.", "Simple but catchy melodies.", "Changes in mood (proud, playful, gentle).", "Energy and drive. Your toes might even tap along!", "Folk-inspired ornaments (twists and turns)."]
@@ -230,7 +165,7 @@
                 id: "farrenc",
                 name: "Louise Farrenc",
                 imageName: "Louise Farrenc.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/91/3c/6e/913c6e26-24ba-b636-ebba-683a4843ed44/mzaf_6765792949704712015.plus.aac.p.m4a",
+                youtubeQuery: "Louise Farrenc Symphony No. 1 Minuetto",
                 piece: "Symphony No. 1 in C minor (III. Minuetto)",
                 bio: "Louise Farrenc (1804-1875) was a remarkable musician and composer. She was the only woman in the nineteenth century to be hired as a professor of music at the prestigious Paris Conservatory. Farrenc was a skilled pianist and an accomplished composer, especially of symphonies and chamber music. During her lifetime, she was highly admired, although she earned less than her male colleagues. She also co-edited a book called Treasures of Pianists, showing her deep interest in music from earlier centuries, which influenced her own compositions.",
                 elements: ["Form (Structure): Listen for the ABA structure (Minuetto -> Trio -> Minuetto).", "Rhythm and Dance Character: The steady, graceful beat of the Minuetto.", "Dynamics and Expression: Contrasts in loud and soft passages highlight the drama."]
@@ -239,7 +174,7 @@
                 id: "tchaikovsky",
                 name: "Pyotr Ilyich Tchaikovsky",
                 imageName: "Pyotr Ilyich Tchaikovsky.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/21/53/7d/21537dc2-35bd-62df-0e69-b57f2025ed9a/mzaf_10580975618768018241.plus.aac.p.m4a",
+                youtubeQuery: "Tchaikovsky Waltz of the Flowers",
                 piece: "“Waltz of the Flowers” from The Nutcracker",
                 bio: "The waltz is a famous dance that many people connect with the city of Vienna, especially because of the composer Johann Strauss, who is often called the “King of the Waltz.” But Pyotr Ilyich Tchaikovsky took the waltz to a new level. Because he was trained as a symphonic composer and loved writing for ballet, his waltzes were not just pretty dance tunes for parties. They were written to tell a story on stage, supporting dancers, characters, and dramatic action. His melodies are beautiful and memorable.",
                 elements: ["Rhythm and Meter: The steady triple meter (1-2-3, 1-2-3) that defines the waltz.", "Melody: Long, lyrical melodies introduced by the horns and expanded by strings.", "Development: The texture becomes fuller and more brilliant, leading to a joyful conclusion."]
@@ -248,7 +183,7 @@
                 id: "strauss",
                 name: "Johann Strauss II",
                 imageName: "Johann Strauss II.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/0d/18/8a/0d188a1e-ab71-ccff-59dd-1ab0df67f3ad/mzaf_14959124430263309623.plus.aac.p.m4a",
+                youtubeQuery: "Johann Strauss II Thunder and Lightning Polka",
                 piece: "Thunder and Lightning Polka",
                 bio: "Johann Strauss II was born on October 25, 1825, in Vienna, Austria, and died there on June 3, 1899. He became known as the “Waltz King” because of his many famous Viennese waltzes and operettas. He was the eldest son of Johann Strauss I, who was also a well-known composer. His father did not want him to become a musician and encouraged him to pursue a different career. As a result, Strauss II began working as a bank clerk. However, he secretly studied the violin, and in 1844 he formed and conducted his own dance orchestra at a restaurant in Vienna.",
                 elements: ["Rhythm and Tempo: Quick duple meter (1-2, 1-2) typical of a polka.", "Sharp rhythmic accents that create the 'thunder and lightning' effect.", "Melody: Bright, playful main themes introduced by woodwinds and strings."]
@@ -257,7 +192,7 @@
                 id: "brahms",
                 name: "Johannes Brahms",
                 imageName: "Johannes Brahms.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/d1/8a/d8/d18ad851-f404-f529-6799-a864708709a3/mzaf_4102980644330531535.plus.aac.p.m4a",
+                youtubeQuery: "Johannes Brahms Hungarian Dance No. 5",
                 piece: "Hungarian Dance No. 5",
                 bio: "Johannes Brahms (born May 7, 1833, Hamburg [Germany]—died April 3, 1897, Vienna, Austria-Hungary [now in Austria]) was a German composer and pianist of the Romantic period, who wrote symphonies, concerti, chamber music, piano works, choral compositions, and more than 200 songs. Brahms was the great master of symphonic and sonata style in the second half of the 19th century. He can be viewed as an advocate for the Classical tradition of Joseph Haydn, Wolfgang Amadeus Mozart, and Ludwig van Beethoven in a period when the standards of this tradition were being questioned or overturned by the Romantics.",
                 elements: ["Rich harmonies: Dense, Romantic harmonies with complex chord progressions.", "Lyrical melodies: Long, expressive melodies that feel singing and heartfelt.", "Rhythmic complexity: Intricate rhythms, syncopation, and cross-rhythms give energy and drive."]
@@ -266,7 +201,7 @@
                 id: "komitas",
                 name: "Komitas",
                 imageName: "Komitas.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/0d/da/51/0dda51f9-d8e2-9b25-0be1-3fcf7d3d78bd/mzaf_14510065258380845318.plus.aac.p.m4a",
+                youtubeQuery: "Komitas Etchmiadzin Dance",
                 piece: "Etchmiadzin Dance",
                 bio: "Komitas was an Armenian composer and ethnomusicologist who helped create a distinct national musical style for Armenia. He was born on October 8, 1869, in Kütahya, in the Ottoman Empire (now part of Turkey), and died on October 22, 1935, in Paris, France. Orphaned at the age of 11, he was sent to study sacred (liturgical) singing at a seminary in Vagarshapat (now Ejmiadzin), Armenia. He graduated in 1893 and took the name “Komitas,” honoring a seventh-century Armenian hymn writer.",
                 elements: ["Cultural Character: Captures the spirit of community dance and national identity.", "Rhythm and Meter: Strong, driving rhythm with accented beats.", "The pulse feels grounded and earthy, suggesting communal dancing."]
@@ -275,7 +210,7 @@
                 id: "copland",
                 name: "Aaron Copland",
                 imageName: "Aaron Copland.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/cd/66/ec/cd66ecec-35cd-26de-ddcc-cc41e0b51c14/mzaf_4734493351982701460.plus.aac.p.m4a",
+                youtubeQuery: "Aaron Copland Hoe-down from Rodeo",
                 piece: "Hoe-down from “Rodeo”",
                 bio: "Aaron Copland (November 14, 1900 – December 2, 1990) was an American composer celebrated for creating music that expressed a distinctly American style. Born in Brooklyn, New York, to Russian-Jewish immigrant parents, Copland began studying piano with his older sister and decided at age 15 that he wanted to become a composer. Early in his training, he studied harmony through correspondence courses, despite limited resources and few artistic opportunities in his environment. In the 1930s, Copland shifted toward composing music that could connect with a broad audience.",
                 elements: ["Rhythm & Dance Feel: Strong, lively rhythms of a country dance.", "Syncopation: When some beats are louder than others, making it exciting.", "Folk Influence: Inspired by American folk songs, cowboy dances, and square dances."]
@@ -284,7 +219,7 @@
                 id: "bernstein",
                 name: "Leonard Bernstein",
                 imageName: "Leonard Bernstein.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview112/v4/c3/9d/28/c39d28ca-cf24-34ad-6e06-5cf398b58a1f/mzaf_11308358249684175510.plus.aac.p.m4a",
+                youtubeQuery: "Leonard Bernstein West Side Story Overture",
                 piece: "West Side Story Overture",
                 bio: "Leonard Bernstein (born August 25, 1918, Lawrence, Massachusetts—died October 14, 1990, New York, New York) was an American conductor, composer, and pianist noted for his accomplishments in both classical and popular music, for his flamboyant conducting style, and for his talent as a teacher, especially in concerts for young people. Bernstein played piano from age 10. He attended Boston Latin School and Harvard University. In addition to his work in classical music, Bernstein achieved fame as a composer for the theater. His most celebrated work is the 1957 musical West Side Story.",
                 elements: ["Rhythm & Beat: A mix of styles including jazz with swinging, syncopated beats.", "Latin rhythms giving the music energy and a dance-like feel.", "Storytelling: Rhythms and melodies that show excitement, tension, or romance."]
@@ -293,7 +228,7 @@
                 id: "stravinsky",
                 name: "Igor Stravinsky",
                 imageName: "Igor Stravinsky.jpeg",
-                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/93/81/ed/9381edfb-5bb6-98ec-67df-98daab00139b/mzaf_3681577789396277874.plus.aac.p.m4a",
+                youtubeQuery: "Igor Stravinsky Finale from Firebird Suite",
                 piece: "“Finale” from Firebird Suite",
                 bio: "Igor Stravinsky wrote The Firebird, a ballet based on an old Russian fairy tale. It tells the story of a brave prince, a magical glowing bird called the Firebird, and a wicked sorcerer named Kashchei. The ballet first premiered in 1910 in Paris and quickly made Stravinsky famous. He later created shorter concert versions called the Firebird Suite, which orchestras still perform today. The music helps tell the story without words. When the Firebird appears, the music sounds bright, sparkling, and light. When the evil sorcerer shows up, the music becomes darker and more powerful.",
                 elements: ["Rhythm & Beat: Changing rhythms that speed up and slow down to build drama.", "Storytelling & Emotional Impact: The finale represents the triumph of the Firebird over evil.", "Listen for how the ending feels exciting, magical, and victorious."]
@@ -607,7 +542,7 @@
                                 ))}
                               </ul>
                               
-                              <AudioSnippet src={composer.audioUrl} />
+                              <AudioSnippet src={composer.youtubeQuery} />
                             </div>
                           </div>
                         )}
