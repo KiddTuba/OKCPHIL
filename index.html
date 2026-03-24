@@ -32,14 +32,14 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useRef, useEffect } = React;
 
-        // === IMAGE SETUP ===
-        // Since we are hosting this on GitHub Pages, "." means "look in the same folder"
+        // === GITHUB SETUP ===
         const GITHUB_BASE_URL = ".";
 
         // === ICON COMPONENTS ===
         const Play = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>;
+        const Pause = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>;
         const CheckCircle = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
         const Music = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>;
         const Users = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
@@ -53,74 +53,296 @@
         const ChevronUp = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>;
         const Info = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>;
         const MapPin = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
+        const ZoomIn = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>;
+        const X = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
 
-        function App() {
-          const [currentScreen, setCurrentScreen] = useState('home'); 
-          const [activeModule, setActiveModule] = useState(null);
-          const [completedModules, setCompletedModules] = useState([]);
-          const [playerName, setPlayerName] = useState('');
-
-          const modules = [
-            { id: 'leaders', title: 'The Leaders', icon: Users, color: 'bg-purple-500', hover: 'hover:bg-purple-600' },
-            { id: 'families', title: 'Instrument Families', icon: Music, color: 'bg-blue-500', hover: 'hover:bg-blue-600' },
-            { id: 'composers', title: 'World Tour', icon: Globe, color: 'bg-green-500', hover: 'hover:bg-green-600' },
-            { id: 'etiquette', title: 'Manners & Rules', icon: BookOpen, color: 'bg-orange-500', hover: 'hover:bg-orange-600' }
-          ];
-
-          const handleModuleComplete = (id) => {
-            if (!completedModules.includes(id)) {
-              setCompletedModules([...completedModules, id]);
-            }
-            setCurrentScreen('dashboard');
-            setActiveModule(null);
-          };
-
-          const renderScreen = () => {
-            switch (currentScreen) {
-              case 'home':
-                return <HomeScreen onStart={(name) => { setPlayerName(name); setCurrentScreen('dashboard'); }} />;
-              case 'dashboard':
-                return (
-                  <Dashboard 
-                    playerName={playerName}
-                    modules={modules} 
-                    completedModules={completedModules} 
-                    onSelectModule={(id) => { setActiveModule(id); setCurrentScreen('module'); }}
-                    onGetCertificate={() => setCurrentScreen('certificate')}
-                  />
-                );
-              case 'module':
-                return <ModuleScreen moduleId={activeModule} onComplete={() => handleModuleComplete(activeModule)} onBack={() => setCurrentScreen('dashboard')} />;
-              case 'certificate':
-                return <CertificateScreen playerName={playerName} onRestart={() => { setCompletedModules([]); setCurrentScreen('home'); setPlayerName(''); }} />;
-              default:
-                return <HomeScreen />;
-            }
-          };
-
+        // === FULL SCREEN IMAGE OVERLAY (LIGHTBOX) ===
+        function ImageModal({ src, onClose }) {
+          if (!src) return null;
           return (
-            <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-2 md:p-8 flex justify-center items-center">
-              <div className="max-w-5xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-slate-200 h-[90vh] flex flex-col">
-                <div className="bg-indigo-900 text-white p-4 md:p-6 flex items-center justify-between shrink-0 z-20 shadow-md">
-                  <div className="flex items-center gap-3">
-                    <Music className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
-                    <h1 className="text-xl md:text-3xl font-bold tracking-wider">SYMPHONY QUEST</h1>
-                  </div>
-                  {currentScreen !== 'home' && currentScreen !== 'certificate' && (
-                    <div className="flex items-center gap-2 bg-indigo-800 px-3 py-1 md:px-4 md:py-2 rounded-full border border-indigo-700">
-                      <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400" />
-                      <span className="font-bold text-sm md:text-lg">{completedModules.length} / 4</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex-grow flex flex-col relative overflow-hidden bg-slate-50">
-                  {renderScreen()}
-                </div>
+            <div 
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-fadeIn" 
+              onClick={onClose}
+            >
+              <div className="relative max-w-5xl w-full flex justify-center items-center h-full">
+                <button 
+                  className="absolute top-4 right-4 md:top-10 md:right-10 text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-colors flex items-center gap-2" 
+                  onClick={onClose}
+                >
+                  <X className="w-8 h-8" />
+                </button>
+                <img 
+                  src={src} 
+                  className="max-h-[85vh] max-w-full rounded-lg shadow-2xl object-contain" 
+                  onClick={(e) => e.stopPropagation()} 
+                />
               </div>
             </div>
           );
         }
+
+        // === 30 SECOND AUDIO SNIPPET PLAYER ===
+        function AudioSnippet({ src }) {
+          const audioRef = useRef(null);
+          const [isPlaying, setIsPlaying] = useState(false);
+          const [progress, setProgress] = useState(0);
+
+          const togglePlay = () => {
+            if (isPlaying) {
+              audioRef.current.pause();
+            } else {
+              audioRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+          };
+
+          const handleTimeUpdate = () => {
+            if (!audioRef.current) return;
+            const time = audioRef.current.currentTime;
+            
+            setProgress((time / 30) * 100);
+            
+            if (time >= 30) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = 0;
+              setIsPlaying(false);
+              setProgress(0);
+            }
+          };
+
+          const handleEnded = () => {
+            setIsPlaying(false);
+            setProgress(0);
+          };
+
+          return (
+            <div className="flex items-center gap-3 bg-indigo-50 p-3 rounded-xl border border-indigo-200 mt-4 shadow-sm">
+              <button 
+                onClick={togglePlay} 
+                className="bg-indigo-600 text-white p-3 rounded-full hover:bg-indigo-700 hover:scale-105 transition shadow-sm flex-shrink-0"
+              >
+                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+              </button>
+              <div className="flex-grow">
+                <p className="text-xs font-bold text-indigo-900 mb-1 uppercase tracking-wider flex items-center gap-1">
+                  <Music className="w-3 h-3" /> 30-Second Sneak Peek
+                </p>
+                <div className="w-full bg-indigo-200 h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-indigo-500 h-full transition-all duration-100 ease-linear" style={{ width: `${progress}%` }}></div>
+                </div>
+              </div>
+              <audio 
+                ref={audioRef} 
+                src={src} 
+                onTimeUpdate={handleTimeUpdate} 
+                onEnded={handleEnded} 
+                preload="none"
+              />
+            </div>
+          );
+        }
+
+        // --- CURRICULUM DATA ---
+        const moduleData = {
+          leaders: {
+            title: "The Leaders",
+            color: "text-purple-600",
+            bg: "bg-purple-100",
+            leadersList: [
+              {
+                name: "Luca Antonucci",
+                title: "The Maestro (Conductor)",
+                imageName: "Luca Antonucci.jpeg",
+                bio: "A versatile conductor with a passion for creating community through music, Luca Antonucci is equally at home in orchestra, opera, and new music. He has performed and assisted in the US, Europe, and Latin America, in halls such as Boston Symphony Hall, Carnegie Hall, Tanglewood, the Wiener Konzerthaus, Argentina's Centro Cultural Kirchner, Cape Town City Hall, Soweto's historic Regina Mundi Church, and many others.\n\nHe currently serves as the Director of Orchestras at Oklahoma State University, Music Director of Boston Summer Opera and Artistic Director of the Open Door Ensembles of Boston, as well as a cover conductor for the Portland Symphony (ME), and as a member of the music staff of the Berkshire Opera Festival (MA), where he is Assistant Conductor and Chorus Master.\n\nRecent appearances include as guest conductor with the Spectrum Orchestra in Bloomfield Hills, MI and as Assistant Conductor with The Washington Chorus on its concert tour to Buenos Aires... A champion of new music and works by composers from historically underrepresented backgrounds..."
+              },
+              {
+                name: "Marat Gabdullin",
+                title: "The Concertmaster",
+                imageName: "Marat Gabdullin.jpeg",
+                bio: "Born in Russia, Marat Gabdullin is one of today's foremost violinists of Oklahoma, with a wide-ranging diversity of cross-cultural appeal. As an associate concertmaster of the Oklahoma City Philharmonic and concertmaster of the Norman Philharmonic, Dr. Gabdullin is involved in nearly every music event around the state of Oklahoma performing with orchestras and chamber ensembles.\n\nAn award-winning video producer, Dr. Gabdullin also regularly records for movie productions. Marat Gabdullin has won many international competitions and also holds a gold medal of the Delphic Games.\n\nIn addition to his career as a classical violinist, Marat is also an entrepreneur and inventor. He is a founder of the Volta Strings Inc. and also holds a patent for his invention of a new type of hybrid electric violin called 'Violinatron'."
+              }
+            ],
+            questions: [
+              {
+                q: "Who is the leader of the orchestra that communicates using hand gestures instead of playing an instrument?",
+                options: ["The Concertmaster", "The Maestro (Conductor)", "The Percussionist"],
+                answer: 1
+              },
+              {
+                q: "What special instrument did Marat Gabdullin, the Concertmaster, invent?",
+                options: ["The Super-Cello", "The Violinatron", "The Electric Flute"],
+                answer: 1
+              }
+            ]
+          },
+          families: {
+            title: "Instrument Families",
+            color: "text-blue-600",
+            bg: "bg-blue-100",
+            diagramName: "Orchestra Diagram.jpeg",
+            questions: [
+              {
+                q: "Which family of instruments is placed at the very back of the orchestra to support the rhythm?",
+                options: ["Woodwinds", "Percussion", "Strings"],
+                answer: 1
+              },
+              {
+                q: "If I am playing an instrument by buzzing my lips into a metal mouthpiece, what family is it?",
+                options: ["Brass", "Strings", "Woodwinds"],
+                answer: 0
+              }
+            ]
+          },
+          composers: {
+            title: "World Tour",
+            color: "text-green-600",
+            bg: "bg-green-100",
+            composers: [
+              {
+                id: "bartok",
+                name: "Béla Bartók",
+                imageName: "Béla Bartók.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/cb/2a/82/cb2a829e-87fc-2a4b-9e4a-5f3366cde9db/mzaf_5883709669524021703.plus.aac.p.m4a",
+                piece: "Romanian Folk Dances",
+                bio: "By the time he was in his early 20s, Béla Bartók was a very skilled composer, writing music in the style of famous German composers. But something was missing—his music didn't yet feel fully alive. Then, he discovered the folk music of his homeland, and everything changed! He became fascinated with the songs and dances of the people around him. Bartók traveled to villages in Hungary, Romania, and other nearby places, collecting thousands of folk tunes. These songs inspired him and made his music even more exciting. From then on, the rhythms, melodies, and feelings of folk music appeared in everything he wrote.",
+                elements: ["Rhythms that feel different: bouncy, uneven, or 'skip around'.", "Simple but catchy melodies.", "Changes in mood (proud, playful, gentle).", "Energy and drive. Your toes might even tap along!", "Folk-inspired ornaments (twists and turns)."]
+              },
+              {
+                id: "farrenc",
+                name: "Louise Farrenc",
+                imageName: "Louise Farrenc.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/91/3c/6e/913c6e26-24ba-b636-ebba-683a4843ed44/mzaf_6765792949704712015.plus.aac.p.m4a",
+                piece: "Symphony No. 1 in C minor (III. Minuetto)",
+                bio: "Louise Farrenc (1804-1875) was a remarkable musician and composer. She was the only woman in the nineteenth century to be hired as a professor of music at the prestigious Paris Conservatory. Farrenc was a skilled pianist and an accomplished composer, especially of symphonies and chamber music. During her lifetime, she was highly admired, although she earned less than her male colleagues. She also co-edited a book called Treasures of Pianists, showing her deep interest in music from earlier centuries, which influenced her own compositions.",
+                elements: ["Form (Structure): Listen for the ABA structure (Minuetto -> Trio -> Minuetto).", "Rhythm and Dance Character: The steady, graceful beat of the Minuetto.", "Dynamics and Expression: Contrasts in loud and soft passages highlight the drama."]
+              },
+              {
+                id: "tchaikovsky",
+                name: "Pyotr Ilyich Tchaikovsky",
+                imageName: "Pyotr Ilyich Tchaikovsky.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/21/53/7d/21537dc2-35bd-62df-0e69-b57f2025ed9a/mzaf_10580975618768018241.plus.aac.p.m4a",
+                piece: "“Waltz of the Flowers” from The Nutcracker",
+                bio: "The waltz is a famous dance that many people connect with the city of Vienna, especially because of the composer Johann Strauss, who is often called the “King of the Waltz.” But Pyotr Ilyich Tchaikovsky took the waltz to a new level. Because he was trained as a symphonic composer and loved writing for ballet, his waltzes were not just pretty dance tunes for parties. They were written to tell a story on stage, supporting dancers, characters, and dramatic action. His melodies are beautiful and memorable.",
+                elements: ["Rhythm and Meter: The steady triple meter (1-2-3, 1-2-3) that defines the waltz.", "Melody: Long, lyrical melodies introduced by the horns and expanded by strings.", "Development: The texture becomes fuller and more brilliant, leading to a joyful conclusion."]
+              },
+              {
+                id: "strauss",
+                name: "Johann Strauss II",
+                imageName: "Johann Strauss II.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/0d/18/8a/0d188a1e-ab71-ccff-59dd-1ab0df67f3ad/mzaf_14959124430263309623.plus.aac.p.m4a",
+                piece: "Thunder and Lightning Polka",
+                bio: "Johann Strauss II was born on October 25, 1825, in Vienna, Austria, and died there on June 3, 1899. He became known as the “Waltz King” because of his many famous Viennese waltzes and operettas. He was the eldest son of Johann Strauss I, who was also a well-known composer. His father did not want him to become a musician and encouraged him to pursue a different career. As a result, Strauss II began working as a bank clerk. However, he secretly studied the violin, and in 1844 he formed and conducted his own dance orchestra at a restaurant in Vienna.",
+                elements: ["Rhythm and Tempo: Quick duple meter (1-2, 1-2) typical of a polka.", "Sharp rhythmic accents that create the 'thunder and lightning' effect.", "Melody: Bright, playful main themes introduced by woodwinds and strings."]
+              },
+              {
+                id: "brahms",
+                name: "Johannes Brahms",
+                imageName: "Johannes Brahms.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/d1/8a/d8/d18ad851-f404-f529-6799-a864708709a3/mzaf_4102980644330531535.plus.aac.p.m4a",
+                piece: "Hungarian Dance No. 5",
+                bio: "Johannes Brahms (born May 7, 1833, Hamburg [Germany]—died April 3, 1897, Vienna, Austria-Hungary [now in Austria]) was a German composer and pianist of the Romantic period, who wrote symphonies, concerti, chamber music, piano works, choral compositions, and more than 200 songs. Brahms was the great master of symphonic and sonata style in the second half of the 19th century. He can be viewed as an advocate for the Classical tradition of Joseph Haydn, Wolfgang Amadeus Mozart, and Ludwig van Beethoven in a period when the standards of this tradition were being questioned or overturned by the Romantics.",
+                elements: ["Rich harmonies: Dense, Romantic harmonies with complex chord progressions.", "Lyrical melodies: Long, expressive melodies that feel singing and heartfelt.", "Rhythmic complexity: Intricate rhythms, syncopation, and cross-rhythms give energy and drive."]
+              },
+              {
+                id: "komitas",
+                name: "Komitas",
+                imageName: "Komitas.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/0d/da/51/0dda51f9-d8e2-9b25-0be1-3fcf7d3d78bd/mzaf_14510065258380845318.plus.aac.p.m4a",
+                piece: "Etchmiadzin Dance",
+                bio: "Komitas was an Armenian composer and ethnomusicologist who helped create a distinct national musical style for Armenia. He was born on October 8, 1869, in Kütahya, in the Ottoman Empire (now part of Turkey), and died on October 22, 1935, in Paris, France. Orphaned at the age of 11, he was sent to study sacred (liturgical) singing at a seminary in Vagarshapat (now Ejmiadzin), Armenia. He graduated in 1893 and took the name “Komitas,” honoring a seventh-century Armenian hymn writer.",
+                elements: ["Cultural Character: Captures the spirit of community dance and national identity.", "Rhythm and Meter: Strong, driving rhythm with accented beats.", "The pulse feels grounded and earthy, suggesting communal dancing."]
+              },
+              {
+                id: "copland",
+                name: "Aaron Copland",
+                imageName: "Aaron Copland.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/cd/66/ec/cd66ecec-35cd-26de-ddcc-cc41e0b51c14/mzaf_4734493351982701460.plus.aac.p.m4a",
+                piece: "Hoe-down from “Rodeo”",
+                bio: "Aaron Copland (November 14, 1900 – December 2, 1990) was an American composer celebrated for creating music that expressed a distinctly American style. Born in Brooklyn, New York, to Russian-Jewish immigrant parents, Copland began studying piano with his older sister and decided at age 15 that he wanted to become a composer. Early in his training, he studied harmony through correspondence courses, despite limited resources and few artistic opportunities in his environment. In the 1930s, Copland shifted toward composing music that could connect with a broad audience.",
+                elements: ["Rhythm & Dance Feel: Strong, lively rhythms of a country dance.", "Syncopation: When some beats are louder than others, making it exciting.", "Folk Influence: Inspired by American folk songs, cowboy dances, and square dances."]
+              },
+              {
+                id: "bernstein",
+                name: "Leonard Bernstein",
+                imageName: "Leonard Bernstein.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview112/v4/c3/9d/28/c39d28ca-cf24-34ad-6e06-5cf398b58a1f/mzaf_11308358249684175510.plus.aac.p.m4a",
+                piece: "West Side Story Overture",
+                bio: "Leonard Bernstein (born August 25, 1918, Lawrence, Massachusetts—died October 14, 1990, New York, New York) was an American conductor, composer, and pianist noted for his accomplishments in both classical and popular music, for his flamboyant conducting style, and for his talent as a teacher, especially in concerts for young people. Bernstein played piano from age 10. He attended Boston Latin School and Harvard University. In addition to his work in classical music, Bernstein achieved fame as a composer for the theater. His most celebrated work is the 1957 musical West Side Story.",
+                elements: ["Rhythm & Beat: A mix of styles including jazz with swinging, syncopated beats.", "Latin rhythms giving the music energy and a dance-like feel.", "Storytelling: Rhythms and melodies that show excitement, tension, or romance."]
+              },
+              {
+                id: "stravinsky",
+                name: "Igor Stravinsky",
+                imageName: "Igor Stravinsky.jpeg",
+                audioUrl: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/93/81/ed/9381edfb-5bb6-98ec-67df-98daab00139b/mzaf_3681577789396277874.plus.aac.p.m4a",
+                piece: "“Finale” from Firebird Suite",
+                bio: "Igor Stravinsky wrote The Firebird, a ballet based on an old Russian fairy tale. It tells the story of a brave prince, a magical glowing bird called the Firebird, and a wicked sorcerer named Kashchei. The ballet first premiered in 1910 in Paris and quickly made Stravinsky famous. He later created shorter concert versions called the Firebird Suite, which orchestras still perform today. The music helps tell the story without words. When the Firebird appears, the music sounds bright, sparkling, and light. When the evil sorcerer shows up, the music becomes darker and more powerful.",
+                elements: ["Rhythm & Beat: Changing rhythms that speed up and slow down to build drama.", "Storytelling & Emotional Impact: The finale represents the triumph of the Firebird over evil.", "Listen for how the ending feels exciting, magical, and victorious."]
+              }
+            ],
+            questions: [
+              {
+                q: "Which composer was the ONLY female music professor at the Paris Conservatory in the 1800s?",
+                options: ["Louise Farrenc", "Clara Schumann", "Béla Bartók"],
+                answer: 0
+              },
+              {
+                q: "Aaron Copland's 'Hoe-down' features a sound inspired by what?",
+                options: ["Russian fairy tales", "Cowboys and American square dances", "Parisian waltzes"],
+                answer: 1
+              },
+              {
+                q: "Which composer is known as the 'Waltz King' but originally worked as a bank clerk?",
+                options: ["Johannes Brahms", "Igor Stravinsky", "Johann Strauss II"],
+                answer: 2
+              }
+            ]
+          },
+          etiquette: {
+            title: "Manners & Words",
+            color: "text-orange-600",
+            bg: "bg-orange-100",
+            sections: [
+              {
+                title: "The Arrival & Warming Up",
+                icon: "MapPin",
+                content: "Enter the Civic Center Music Hall quietly. Ushers will help you find your seat. Once seated, you will hear the musicians warming up. It might sound chaotic, but they are preparing their instruments and themselves for the performance, just like athletes warm up before a game!"
+              },
+              {
+                title: "Tuning & The Concertmaster",
+                icon: "Music",
+                content: "The Concertmaster (the lead violinist) will walk on stage. The audience claps to welcome them. The Concertmaster will ask the oboe to play a tuning note (an 'A'). The orchestra will tune their instruments to match this note. The audience must be completely quiet during this time so the musicians can hear perfectly."
+              },
+              {
+                title: "The Conductor's Entrance",
+                icon: "Users",
+                content: "Next, the Maestro (Conductor) will walk on stage. The audience claps to welcome the Maestro. The Maestro will step onto the podium, turn to the orchestra, and raise their baton. This is the signal that the music is about to start! Silence is expected from this moment on."
+              },
+              {
+                title: "During the Performance",
+                icon: "Star",
+                content: "The most important rule is to be a good listener. Being a good listener means being completely quiet so that you and everyone around you can hear the music. Do not talk, whisper, eat, or rustle papers. Keep your body still so you do not distract the musicians or the other audience members."
+              },
+              {
+                title: "When to Applaud",
+                icon: "Award",
+                content: "When should you clap? At a classical concert, the audience waits until the very end of the entire piece to applaud. Sometimes a piece has several smaller sections called 'movements,' with short pauses in between. Do not clap during these pauses! Watch the Maestro. When the Maestro lowers their hands completely and turns around to face the audience, that is your cue to applaud enthusiastically!"
+              }
+            ],
+            questions: [
+              {
+                q: "When the orchestra is warming up on stage, what are they doing?",
+                options: ["Playing the concert already", "Preparing their instruments and bodies to perform", "Trying to be as loud as possible"],
+                answer: 1
+              },
+              {
+                q: "When is the correct time to clap and cheer?",
+                options: ["In the middle of a beautiful solo", "Whenever you feel like it", "When the performance has concluded and the Maestro drops their hands"],
+                answer: 2
+              }
+            ]
+          }
+        };
 
         // --- SCREENS ---
         function HomeScreen({ onStart }) {
@@ -213,157 +435,6 @@
           );
         }
 
-        // --- CURRICULUM DATA ---
-        const moduleData = {
-          leaders: {
-            title: "The Leaders",
-            color: "text-purple-600",
-            bg: "bg-purple-100",
-            questions: [
-              {
-                q: "Who is the leader of the orchestra that communicates using hand gestures instead of playing an instrument?",
-                options: ["The Concertmaster", "The Maestro (Conductor)", "The Percussionist"],
-                answer: 1
-              },
-              {
-                q: "What special instrument did Marat Gabdullin, the Concertmaster, invent?",
-                options: ["The Super-Cello", "The Violinatron", "The Electric Flute"],
-                answer: 1
-              }
-            ]
-          },
-          families: {
-            title: "Instrument Families",
-            color: "text-blue-600",
-            bg: "bg-blue-100",
-            questions: [
-              {
-                q: "Which family of instruments is placed at the very back of the orchestra to support the rhythm?",
-                options: ["Woodwinds", "Percussion", "Strings"],
-                answer: 1
-              },
-              {
-                q: "If I am playing an instrument by buzzing my lips into a metal mouthpiece, what family is it?",
-                options: ["Brass", "Strings", "Woodwinds"],
-                answer: 0
-              }
-            ]
-          },
-          composers: {
-            title: "World Tour",
-            color: "text-green-600",
-            bg: "bg-green-100",
-            composers: [
-              {
-                id: "bartok",
-                name: "Béla Bartók",
-                imageName: "Béla Bartók.jpeg",
-                piece: "Romanian Folk Dances",
-                bio: "By the time he was in his early 20s, Béla Bartók was a very skilled composer, writing music in the style of famous German composers. But something was missing—his music didn't yet feel fully alive. Then, he discovered the folk music of his homeland, and everything changed! He became fascinated with the songs and dances of the people around him. Bartók traveled to villages in Hungary, Romania, and other nearby places, collecting thousands of folk tunes. These songs inspired him and made his music even more exciting. From then on, the rhythms, melodies, and feelings of folk music appeared in everything he wrote.",
-                elements: ["Rhythms that feel different: bouncy, uneven, or 'skip around'.", "Simple but catchy melodies.", "Changes in mood (proud, playful, gentle).", "Energy and drive. Your toes might even tap along!", "Folk-inspired ornaments (twists and turns)."]
-              },
-              {
-                id: "farrenc",
-                name: "Louise Farrenc",
-                imageName: "Louise Farrenc.jpeg",
-                piece: "Symphony No. 1 in C minor (III. Minuetto)",
-                bio: "Louise Farrenc (1804-1875) was a remarkable musician and composer. She was the only woman in the nineteenth century to be hired as a professor of music at the prestigious Paris Conservatory. Farrenc was a skilled pianist and an accomplished composer, especially of symphonies and chamber music. During her lifetime, she was highly admired, although she earned less than her male colleagues. She also co-edited a book called Treasures of Pianists, showing her deep interest in music from earlier centuries, which influenced her own compositions.",
-                elements: ["Form (Structure): Listen for the ABA structure (Minuetto -> Trio -> Minuetto).", "Rhythm and Dance Character: The steady, graceful beat of the Minuetto.", "Dynamics and Expression: Contrasts in loud and soft passages highlight the drama."]
-              },
-              {
-                id: "tchaikovsky",
-                name: "Pyotr Ilyich Tchaikovsky",
-                imageName: "Pyotr Ilyich Tchaikovsky.jpeg",
-                piece: "“Waltz of the Flowers” from The Nutcracker",
-                bio: "The waltz is a famous dance that many people connect with the city of Vienna, especially because of the composer Johann Strauss, who is often called the “King of the Waltz.” But Pyotr Ilyich Tchaikovsky took the waltz to a new level. Because he was trained as a symphonic composer and loved writing for ballet, his waltzes were not just pretty dance tunes for parties. They were written to tell a story on stage, supporting dancers, characters, and dramatic action. His melodies are beautiful and memorable.",
-                elements: ["Rhythm and Meter: The steady triple meter (1-2-3, 1-2-3) that defines the waltz.", "Melody: Long, lyrical melodies introduced by the horns and expanded by strings.", "Development: The texture becomes fuller and more brilliant, leading to a joyful conclusion."]
-              },
-              {
-                id: "strauss",
-                name: "Johann Strauss II",
-                imageName: "Johann Strauss II.jpeg",
-                piece: "Thunder and Lightning Polka",
-                bio: "Johann Strauss II was born on October 25, 1825, in Vienna, Austria, and died there on June 3, 1899. He became known as the “Waltz King” because of his many famous Viennese waltzes and operettas. He was the eldest son of Johann Strauss I, who was also a well-known composer. His father did not want him to become a musician and encouraged him to pursue a different career. As a result, Strauss II began working as a bank clerk. However, he secretly studied the violin, and in 1844 he formed and conducted his own dance orchestra at a restaurant in Vienna.",
-                elements: ["Rhythm and Tempo: Quick duple meter (1-2, 1-2) typical of a polka.", "Sharp rhythmic accents that create the 'thunder and lightning' effect.", "Melody: Bright, playful main themes introduced by woodwinds and strings."]
-              },
-              {
-                id: "brahms",
-                name: "Johannes Brahms",
-                imageName: "Johannes Brahms.jpeg",
-                piece: "Hungarian Dance No. 5",
-                bio: "Johannes Brahms (born May 7, 1833, Hamburg [Germany]—died April 3, 1897, Vienna, Austria-Hungary [now in Austria]) was a German composer and pianist of the Romantic period, who wrote symphonies, concerti, chamber music, piano works, choral compositions, and more than 200 songs. Brahms was the great master of symphonic and sonata style in the second half of the 19th century. He can be viewed as an advocate for the Classical tradition of Joseph Haydn, Wolfgang Amadeus Mozart, and Ludwig van Beethoven in a period when the standards of this tradition were being questioned or overturned by the Romantics.",
-                elements: ["Rich harmonies: Dense, Romantic harmonies with complex chord progressions.", "Lyrical melodies: Long, expressive melodies that feel singing and heartfelt.", "Rhythmic complexity: Intricate rhythms, syncopation, and cross-rhythms give energy and drive."]
-              },
-              {
-                id: "komitas",
-                name: "Komitas",
-                imageName: "Komitas.jpeg",
-                piece: "Etchmiadzin Dance",
-                bio: "Komitas was an Armenian composer and ethnomusicologist who helped create a distinct national musical style for Armenia. He was born on October 8, 1869, in Kütahya, in the Ottoman Empire (now part of Turkey), and died on October 22, 1935, in Paris, France. Orphaned at the age of 11, he was sent to study sacred (liturgical) singing at a seminary in Vagarshapat (now Ejmiadzin), Armenia. He graduated in 1893 and took the name “Komitas,” honoring a seventh-century Armenian hymn writer.",
-                elements: ["Cultural Character: Captures the spirit of community dance and national identity.", "Rhythm and Meter: Strong, driving rhythm with accented beats.", "The pulse feels grounded and earthy, suggesting communal dancing."]
-              },
-              {
-                id: "copland",
-                name: "Aaron Copland",
-                imageName: "Aaron Copland.jpeg",
-                piece: "Hoe-down from “Rodeo”",
-                bio: "Aaron Copland (November 14, 1900 – December 2, 1990) was an American composer celebrated for creating music that expressed a distinctly American style. Born in Brooklyn, New York, to Russian-Jewish immigrant parents, Copland began studying piano with his older sister and decided at age 15 that he wanted to become a composer. Early in his training, he studied harmony through correspondence courses, despite limited resources and few artistic opportunities in his environment. In the 1930s, Copland shifted toward composing music that could connect with a broad audience.",
-                elements: ["Rhythm & Dance Feel: Strong, lively rhythms of a country dance.", "Syncopation: When some beats are louder than others, making it exciting.", "Folk Influence: Inspired by American folk songs, cowboy dances, and square dances."]
-              },
-              {
-                id: "bernstein",
-                name: "Leonard Bernstein",
-                imageName: "Leonard Bernstein.jpeg",
-                piece: "West Side Story Overture",
-                bio: "Leonard Bernstein (born August 25, 1918, Lawrence, Massachusetts—died October 14, 1990, New York, New York) was an American conductor, composer, and pianist noted for his accomplishments in both classical and popular music, for his flamboyant conducting style, and for his talent as a teacher, especially in concerts for young people. Bernstein played piano from age 10. He attended Boston Latin School and Harvard University. In addition to his work in classical music, Bernstein achieved fame as a composer for the theater. His most celebrated work is the 1957 musical West Side Story.",
-                elements: ["Rhythm & Beat: A mix of styles including jazz with swinging, syncopated beats.", "Latin rhythms giving the music energy and a dance-like feel.", "Storytelling: Rhythms and melodies that show excitement, tension, or romance."]
-              },
-              {
-                id: "stravinsky",
-                name: "Igor Stravinsky",
-                imageName: "Igor Stravinsky.jpeg",
-                piece: "“Finale” from Firebird Suite",
-                bio: "Igor Stravinsky wrote The Firebird, a ballet based on an old Russian fairy tale. It tells the story of a brave prince, a magical glowing bird called the Firebird, and a wicked sorcerer named Kashchei. The ballet first premiered in 1910 in Paris and quickly made Stravinsky famous. He later created shorter concert versions called the Firebird Suite, which orchestras still perform today. The music helps tell the story without words. When the Firebird appears, the music sounds bright, sparkling, and light. When the evil sorcerer shows up, the music becomes darker and more powerful.",
-                elements: ["Rhythm & Beat: Changing rhythms that speed up and slow down to build drama.", "Storytelling & Emotional Impact: The finale represents the triumph of the Firebird over evil.", "Listen for how the ending feels exciting, magical, and victorious."]
-              }
-            ],
-            questions: [
-              {
-                q: "Which composer was the ONLY female music professor at the Paris Conservatory in the 1800s?",
-                options: ["Louise Farrenc", "Clara Schumann", "Béla Bartók"],
-                answer: 0
-              },
-              {
-                q: "Aaron Copland's 'Hoe-down' features a sound inspired by what?",
-                options: ["Russian fairy tales", "Cowboys and American square dances", "Parisian waltzes"],
-                answer: 1
-              },
-              {
-                q: "Which composer is known as the 'Waltz King' but originally worked as a bank clerk?",
-                options: ["Johannes Brahms", "Igor Stravinsky", "Johann Strauss II"],
-                answer: 2
-              }
-            ]
-          },
-          etiquette: {
-            title: "Manners & Words",
-            color: "text-orange-600",
-            bg: "bg-orange-100",
-            questions: [
-              {
-                q: "When the orchestra is warming up on stage, what are they doing?",
-                options: ["Playing the concert already", "Preparing their instruments and bodies to perform", "Trying to be as loud as possible"],
-                answer: 1
-              },
-              {
-                q: "When is the correct time to clap and cheer?",
-                options: ["In the middle of a beautiful solo", "Whenever you feel like it", "When the performance has concluded and the Maestro drops their hands"],
-                answer: 2
-              }
-            ]
-          }
-        };
-
         function ModuleScreen({ moduleId, onComplete, onBack }) {
           const data = moduleData[moduleId];
           const [step, setStep] = useState(0); 
@@ -371,6 +442,7 @@
           const [showFeedback, setShowFeedback] = useState(false);
           const [isCorrect, setIsCorrect] = useState(false);
           const [expandedComposer, setExpandedComposer] = useState(null);
+          const [zoomedImage, setZoomedImage] = useState(null); 
 
           const handleImageError = (e) => {
             e.target.onerror = null; 
@@ -405,49 +477,27 @@
                   <div className="space-y-6">
                     <h3 className="text-2xl font-bold text-center text-slate-800 mb-6">Meet Your Orchestra Leaders</h3>
                     
-                    <div className="bg-white rounded-2xl shadow-md border-2 border-purple-100 overflow-hidden flex flex-col md:flex-row">
-                      <div className="md:w-1/3 bg-purple-200 flex items-center justify-center p-6 shrink-0">
-                        <img 
-                          src={`${GITHUB_BASE_URL}/Luca Antonucci.jpeg`} 
-                          onError={handleImageError}
-                          alt="Luca Antonucci" 
-                          className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" 
-                        />
+                    {data.leadersList.map((leader, i) => (
+                      <div key={i} className="bg-white rounded-2xl shadow-md border-2 border-purple-100 overflow-hidden flex flex-col md:flex-row">
+                        <div className="md:w-1/3 bg-purple-200 flex items-center justify-center p-6 shrink-0 relative group">
+                          <img 
+                            src={`${GITHUB_BASE_URL}/${leader.imageName}`} 
+                            onError={handleImageError}
+                            onClick={(e) => { e.stopPropagation(); setZoomedImage(`${GITHUB_BASE_URL}/${leader.imageName}`); }}
+                            alt={leader.name} 
+                            className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover cursor-pointer group-hover:opacity-80 transition-opacity" 
+                          />
+                          <div className="absolute bottom-4 right-4 bg-purple-900 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <ZoomIn className="w-5 h-5" />
+                          </div>
+                        </div>
+                        <div className="p-6 md:w-2/3 max-h-80 overflow-y-auto">
+                          <h4 className="text-2xl font-bold text-purple-900">{leader.name}</h4>
+                          <p className="text-purple-600 font-bold mb-3 uppercase tracking-wider text-sm">{leader.title}</p>
+                          <p className="text-slate-700 text-sm mb-4 whitespace-pre-wrap">{leader.bio}</p>
+                        </div>
                       </div>
-                      <div className="p-6 md:w-2/3 max-h-80 overflow-y-auto">
-                        <h4 className="text-2xl font-bold text-purple-900">Luca Antonucci</h4>
-                        <p className="text-purple-600 font-bold mb-3 uppercase tracking-wider text-sm">The Maestro (Conductor)</p>
-                        <p className="text-slate-700 text-sm mb-4">
-                          A versatile conductor with a passion for creating community through music, Luca Antonucci is equally at home in orchestra, opera, and new music. He has performed and assisted in the US, Europe, and Latin America, in halls such as Boston Symphony Hall, Carnegie Hall, Tanglewood, the Wiener Konzerthaus, Argentina's Centro Cultural Kirchner, Cape Town City Hall, Soweto's historic Regina Mundi Church, and many others.
-                          <br/><br/>
-                          He currently serves as the Director of Orchestras at Oklahoma State University, Music Director of Boston Summer Opera and Artistic Director of the Open Door Ensembles of Boston, as well as a cover conductor for the Portland Symphony (ME), and as a member of the music staff of the Berkshire Opera Festival (MA), where he is Assistant Conductor and Chorus Master.
-                          <br/><br/>
-                          Recent appearances include as guest conductor with the Spectrum Orchestra in Bloomfield Hills, MI and as Assistant Conductor with The Washington Chorus on its concert tour to Buenos Aires... A champion of new music and works by composers from historically underrepresented backgrounds...
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-2xl shadow-md border-2 border-purple-100 overflow-hidden flex flex-col md:flex-row">
-                      <div className="md:w-1/3 bg-purple-200 flex items-center justify-center p-6 shrink-0">
-                        <img 
-                          src={`${GITHUB_BASE_URL}/Marat Gabdullin.jpeg`} 
-                          onError={handleImageError}
-                          alt="Marat Gabdullin" 
-                          className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" 
-                        />
-                      </div>
-                      <div className="p-6 md:w-2/3 max-h-80 overflow-y-auto">
-                        <h4 className="text-2xl font-bold text-purple-900">Marat Gabdullin</h4>
-                        <p className="text-purple-600 font-bold mb-3 uppercase tracking-wider text-sm">The Concertmaster</p>
-                        <p className="text-slate-700 text-sm mb-4">
-                          Born in Russia, Marat Gabdullin is one of today's foremost violinists of Oklahoma, with a wide-ranging diversity of cross-cultural appeal. As an associate concertmaster of the Oklahoma City Philharmonic and concertmaster of the Norman Philharmonic, Dr. Gabdullin is involved in nearly every music event around the state of Oklahoma performing with orchestras and chamber ensembles. 
-                          <br/><br/>
-                          An award-winning video producer, Dr. Gabdullin also regularly records for movie productions. Marat Gabdullin has won many international competitions and also holds a gold medal of the Delphic Games. 
-                          <br/><br/>
-                          In addition to his career as a classical violinist, Marat is also an entrepreneur and inventor. He is a founder of the Volta Strings Inc. and also holds a patent for his invention of a new type of hybrid electric violin called "Violinatron".
-                        </p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 );
 
@@ -456,13 +506,16 @@
                   <div className="space-y-6">
                     <h3 className="text-2xl font-bold text-center text-slate-800 mb-4">The Orchestra Diagram</h3>
                     
-                    <div className="bg-slate-100 p-2 rounded-2xl shadow-inner text-center border-4 border-slate-300">
+                    <div className="bg-slate-100 p-2 rounded-2xl shadow-inner text-center border-4 border-slate-300 relative group cursor-pointer" onClick={() => setZoomedImage(`${GITHUB_BASE_URL}/${data.diagramName}`)}>
                       <img 
-                          src={`${GITHUB_BASE_URL}/Orchestra Diagram.jpeg`} 
+                          src={`${GITHUB_BASE_URL}/${data.diagramName}`} 
                           onError={handleImageError}
                           alt="Orchestra Diagram" 
-                          className="w-full h-auto rounded-xl shadow-sm" 
+                          className="w-full h-auto rounded-xl shadow-sm group-hover:opacity-90 transition-opacity" 
                       />
+                      <div className="absolute bottom-4 right-4 bg-slate-800 text-white px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                        <ZoomIn className="w-5 h-5" /> Click to Enlarge
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -490,7 +543,7 @@
                 return (
                   <div className="space-y-4">
                     <h3 className="text-2xl font-bold text-center text-slate-800 mb-6">The Composer Passport</h3>
-                    <p className="text-center text-slate-600 mb-4">Click a composer to expand and read their history!</p>
+                    <p className="text-center text-slate-600 mb-4">Click a composer to expand, read their history, and hear their music!</p>
                     
                     {data.composers.map((composer, idx) => (
                       <div key={idx} className="border-2 border-green-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300">
@@ -502,8 +555,10 @@
                             <img 
                               src={`${GITHUB_BASE_URL}/${composer.imageName}`} 
                               onError={handleImageError}
+                              onClick={(e) => { e.stopPropagation(); setZoomedImage(`${GITHUB_BASE_URL}/${composer.imageName}`); }}
                               alt={composer.name} 
-                              className="w-12 h-12 rounded-full object-cover border-2 border-green-300 shadow-sm" 
+                              className="w-12 h-12 rounded-full object-cover border-2 border-green-400 shadow-sm cursor-pointer hover:scale-110 transition-transform" 
+                              title="Click to Enlarge Photo"
                             />
                             <div className="text-left">
                               <h4 className="font-bold text-green-900 text-lg">{composer.name}</h4>
@@ -532,6 +587,8 @@
                                   <li key={i}>{el}</li>
                                 ))}
                               </ul>
+                              
+                              <AudioSnippet src={composer.audioUrl} />
                             </div>
                           </div>
                         )}
@@ -545,32 +602,24 @@
                   <div className="space-y-6">
                     <h3 className="text-2xl font-bold text-center text-slate-800 mb-6">Concert Survival Guide</h3>
                     
-                    <div className="bg-orange-50 border-l-8 border-orange-400 p-6 rounded-r-2xl shadow-sm">
-                      <h4 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
-                         <MapPin className="w-6 h-6" /> 1. The Arrival
-                      </h4>
-                      <p className="text-slate-700">Once you are seated, take a moment to quietly watch the musicians on stage. You may notice that they are warming up—just like athletes do before a game. Musicians warm up their instruments and their bodies so they are fully prepared to perform their best.</p>
-                    </div>
+                    {data.sections.map((section, idx) => {
+                      const IconComponent = {
+                        MapPin: MapPin,
+                        Music: Music,
+                        Users: Users,
+                        Star: Star,
+                        Award: Award
+                      }[section.icon] || Star;
 
-                    <div className="bg-orange-50 border-l-8 border-orange-500 p-6 rounded-r-2xl shadow-sm">
-                      <h4 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
-                         <Users className="w-6 h-6" /> 2. The Concert Begins
-                      </h4>
-                      <p className="text-slate-700 mb-2">When it is time to start, the <strong>concertmaster</strong> will walk onto the stage. The concertmaster is the leader of the violin section and the whole orchestra (after the conductor). They walk on stage first, the audience claps, and they help the orchestra tune.</p>
-                      <p className="text-slate-700">When all of the players have tuned their instruments, the concert is ready to begin. It is time for the <strong>maestro</strong>, also known as the conductor, to come on stage.</p>
-                    </div>
-
-                    <div className="bg-orange-50 border-l-8 border-orange-600 p-6 rounded-r-2xl shadow-sm">
-                      <h4 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
-                         <Star className="w-6 h-6" /> 3. Manners
-                      </h4>
-                      <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                        <li>Just as good manners are important at home and in the classroom, they are equally important at orchestra concerts.</li>
-                        <li>Refrain from talking during the performance, as it distracts others and prevents you from listening fully.</li>
-                        <li>Do not leave your seat until the performance has concluded.</li>
-                        <li>If seated in a balcony, never throw or drop objects over the edge.</li>
-                      </ul>
-                    </div>
+                      return (
+                        <div key={idx} className="bg-orange-50 border-l-8 border-orange-500 p-6 rounded-r-2xl shadow-sm">
+                          <h4 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
+                            <IconComponent className="w-6 h-6" /> {idx + 1}. {section.title}
+                          </h4>
+                          <p className="text-slate-700">{section.content}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 );
 
@@ -581,6 +630,8 @@
 
           return (
             <div className="flex flex-col h-full bg-white relative">
+              <ImageModal src={zoomedImage} onClose={() => setZoomedImage(null)} />
+
               <div className="flex items-center p-3 md:p-4 border-b border-slate-100 shrink-0 z-10 bg-white">
                 <button onClick={onBack} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                   <ArrowLeft className="w-6 h-6" />
@@ -685,6 +736,75 @@
               >
                 Start Over for Next Student
               </button>
+            </div>
+          );
+        }
+
+        // === MAIN APP COMPONENT ===
+        function App() {
+          const [currentScreen, setCurrentScreen] = useState('home'); 
+          const [activeModule, setActiveModule] = useState(null);
+          const [completedModules, setCompletedModules] = useState([]);
+          const [playerName, setPlayerName] = useState('');
+
+          const modules = [
+            { id: 'leaders', title: 'The Leaders', icon: Users, color: 'bg-purple-500', hover: 'hover:bg-purple-600' },
+            { id: 'families', title: 'Instrument Families', icon: Music, color: 'bg-blue-500', hover: 'hover:bg-blue-600' },
+            { id: 'composers', title: 'World Tour', icon: Globe, color: 'bg-green-500', hover: 'hover:bg-green-600' },
+            { id: 'etiquette', title: 'Manners & Rules', icon: BookOpen, color: 'bg-orange-500', hover: 'hover:bg-orange-600' }
+          ];
+
+          const handleModuleComplete = (id) => {
+            if (!completedModules.includes(id)) {
+              setCompletedModules([...completedModules, id]);
+            }
+            setCurrentScreen('dashboard');
+            setActiveModule(null);
+          };
+
+          const renderScreen = () => {
+            switch (currentScreen) {
+              case 'home':
+                return <HomeScreen onStart={(name) => { setPlayerName(name); setCurrentScreen('dashboard'); }} />;
+              case 'dashboard':
+                return (
+                  <Dashboard 
+                    playerName={playerName}
+                    modules={modules} 
+                    completedModules={completedModules} 
+                    onSelectModule={(id) => { setActiveModule(id); setCurrentScreen('module'); }}
+                    onGetCertificate={() => setCurrentScreen('certificate')}
+                  />
+                );
+              case 'module':
+                return <ModuleScreen moduleId={activeModule} onComplete={() => handleModuleComplete(activeModule)} onBack={() => setCurrentScreen('dashboard')} />;
+              case 'certificate':
+                return <CertificateScreen playerName={playerName} onRestart={() => { setCompletedModules([]); setCurrentScreen('home'); setPlayerName(''); }} />;
+              default:
+                return <HomeScreen />;
+            }
+          };
+
+          return (
+            <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-2 md:p-8 flex justify-center items-center">
+              <div className="max-w-5xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-slate-200 h-[90vh] flex flex-col">
+                <div className="bg-indigo-900 text-white p-4 md:p-6 flex items-center justify-between shrink-0 z-20 shadow-md">
+                  <div className="flex items-center gap-3">
+                    <Music className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
+                    <h1 className="text-xl md:text-3xl font-bold tracking-wider">SYMPHONY QUEST</h1>
+                  </div>
+                  {currentScreen !== 'home' && currentScreen !== 'certificate' && (
+                    <div className="flex items-center gap-2 bg-indigo-800 px-3 py-1 md:px-4 md:py-2 rounded-full border border-indigo-700">
+                      <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400" />
+                      <span className="font-bold text-sm md:text-lg">{completedModules.length} / 4</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex-grow flex flex-col relative overflow-hidden bg-slate-50">
+                  {renderScreen()}
+                </div>
+              </div>
             </div>
           );
         }
