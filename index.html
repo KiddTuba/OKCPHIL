@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symphony Quest</title>
+    
+    <!-- Tailwind CSS for Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel to compile JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        .animate-shake { animation: shake 0.4s; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // === IMAGE SETUP ===
+        // Since we are hosting this on GitHub Pages, "." means "look in the same folder"
+        const GITHUB_BASE_URL = ".";
+
+        // === ICON COMPONENTS ===
+        const Play = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>;
+        const CheckCircle = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
+        const Music = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>;
+        const Users = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
+        const Globe = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>;
+        const BookOpen = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>;
+        const Star = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
+        const Award = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>;
+        const ArrowRight = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>;
+        const ArrowLeft = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
+        const ChevronDown = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
+        const ChevronUp = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>;
+        const Info = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>;
+        const MapPin = ({className}) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
+
+        function App() {
+          const [currentScreen, setCurrentScreen] = useState('home'); 
+          const [activeModule, setActiveModule] = useState(null);
+          const [completedModules, setCompletedModules] = useState([]);
+          const [playerName, setPlayerName] = useState('');
+
+          const modules = [
+            { id: 'leaders', title: 'The Leaders', icon: Users, color: 'bg-purple-500', hover: 'hover:bg-purple-600' },
+            { id: 'families', title: 'Instrument Families', icon: Music, color: 'bg-blue-500', hover: 'hover:bg-blue-600' },
+            { id: 'composers', title: 'World Tour', icon: Globe, color: 'bg-green-500', hover: 'hover:bg-green-600' },
+            { id: 'etiquette', title: 'Manners & Rules', icon: BookOpen, color: 'bg-orange-500', hover: 'hover:bg-orange-600' }
+          ];
+
+          const handleModuleComplete = (id) => {
+            if (!completedModules.includes(id)) {
+              setCompletedModules([...completedModules, id]);
+            }
+            setCurrentScreen('dashboard');
+            setActiveModule(null);
+          };
+
+          const renderScreen = () => {
+            switch (currentScreen) {
+              case 'home':
+                return <HomeScreen onStart={(name) => { setPlayerName(name); setCurrentScreen('dashboard'); }} />;
+              case 'dashboard':
+                return (
+                  <Dashboard 
+                    playerName={playerName}
+                    modules={modules} 
+                    completedModules={completedModules} 
+                    onSelectModule={(id) => { setActiveModule(id); setCurrentScreen('module'); }}
+                    onGetCertificate={() => setCurrentScreen('certificate')}
+                  />
+                );
+              case 'module':
+                return <ModuleScreen moduleId={activeModule} onComplete={() => handleModuleComplete(activeModule)} onBack={() => setCurrentScreen('dashboard')} />;
+              case 'certificate':
+                return <CertificateScreen playerName={playerName} onRestart={() => { setCompletedModules([]); setCurrentScreen('home'); setPlayerName(''); }} />;
+              default:
+                return <HomeScreen />;
+            }
+          };
+
+          return (
+            <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-2 md:p-8 flex justify-center items-center">
+              <div className="max-w-5xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-slate-200 h-[90vh] flex flex-col">
+                <div className="bg-indigo-900 text-white p-4 md:p-6 flex items-center justify-between shrink-0 z-20 shadow-md">
+                  <div className="flex items-center gap-3">
+                    <Music className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
+                    <h1 className="text-xl md:text-3xl font-bold tracking-wider">SYMPHONY QUEST</h1>
+                  </div>
+                  {currentScreen !== 'home' && currentScreen !== 'certificate' && (
+                    <div className="flex items-center gap-2 bg-indigo-800 px-3 py-1 md:px-4 md:py-2 rounded-full border border-indigo-700">
+                      <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400" />
+                      <span className="font-bold text-sm md:text-lg">{completedModules.length} / 4</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex-grow flex flex-col relative overflow-hidden bg-slate-50">
+                  {renderScreen()}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // --- SCREENS ---
+        function HomeScreen({ onStart }) {
+          const [name, setName] = useState('');
+
+          return (
+            <div className="flex-grow flex flex-col items-center justify-center p-8 text-center space-y-8 bg-gradient-to-b from-indigo-50 to-white overflow-y-auto">
+              <div className="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center mb-4 border-4 border-indigo-200">
+                <Play className="w-16 h-16 text-indigo-600 ml-2" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800">Ready to Beat the Maestro?</h2>
+              <p className="text-xl text-slate-600 max-w-2xl">
+                Complete 4 musical missions to earn your official OKC Philharmonic Symphony Certificate!
+              </p>
+              
+              <div className="w-full max-w-md space-y-4 pt-8">
+                <input 
+                  type="text" 
+                  placeholder="Enter your first name..." 
+                  className="w-full text-center text-2xl p-4 rounded-xl border-2 border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200 outline-none transition-all"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && name.trim() && onStart(name)}
+                />
+                <button 
+                  onClick={() => onStart(name || 'Musician')}
+                  disabled={!name.trim()}
+                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-2xl font-bold rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3"
+                >
+                  Start Quest <ArrowRight className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        function Dashboard({ playerName, modules, completedModules, onSelectModule, onGetCertificate }) {
+          const allComplete = completedModules.length === modules.length;
+
+          return (
+            <div className="p-4 md:p-8 flex flex-col h-full overflow-y-auto">
+              <div className="mb-6 md:mb-8 text-center shrink-0">
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Welcome, {playerName || 'Musician'}!</h2>
+                <p className="text-md md:text-lg text-slate-600 mt-2">Select a mission below. Complete them all to unlock your prize.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto w-full flex-grow">
+                {modules.map((mod) => {
+                  const isComplete = completedModules.includes(mod.id);
+                  const Icon = mod.icon;
+                  
+                  return (
+                    <button
+                      key={mod.id}
+                      onClick={() => onSelectModule(mod.id)}
+                      className={`relative flex flex-col items-center justify-center p-6 md:p-8 rounded-2xl border-4 transition-all transform hover:-translate-y-1 ${
+                        isComplete 
+                          ? 'bg-slate-100 border-slate-200 opacity-80' 
+                          : `${mod.color} ${mod.hover} border-transparent text-white shadow-xl hover:shadow-2xl`
+                      }`}
+                    >
+                      {isComplete && (
+                        <div className="absolute top-4 right-4 bg-green-500 rounded-full p-1">
+                          <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                        </div>
+                      )}
+                      <Icon className={`w-12 h-12 md:w-16 md:h-16 mb-4 ${isComplete ? 'text-slate-400' : 'text-white'}`} />
+                      <h3 className={`text-xl md:text-2xl font-bold ${isComplete ? 'text-slate-500' : 'text-white'}`}>
+                        {mod.title}
+                      </h3>
+                      <p className={`mt-2 font-medium text-sm md:text-base ${isComplete ? 'text-slate-400' : 'text-white/80'}`}>
+                        {isComplete ? 'Mission Complete!' : 'Start Mission'}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {allComplete && (
+                <div className="mt-8 flex justify-center animate-bounce shrink-0 pb-8">
+                  <button 
+                    onClick={onGetCertificate}
+                    className="py-4 px-8 md:px-12 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xl md:text-2xl font-bold rounded-xl shadow-xl flex items-center gap-3 border-4 border-yellow-500"
+                  >
+                    <Award className="w-8 h-8" /> Claim Your Certificate!
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // --- CURRICULUM DATA ---
+        const moduleData = {
+          leaders: {
+            title: "The Leaders",
+            color: "text-purple-600",
+            bg: "bg-purple-100",
+            questions: [
+              {
+                q: "Who is the leader of the orchestra that communicates using hand gestures instead of playing an instrument?",
+                options: ["The Concertmaster", "The Maestro (Conductor)", "The Percussionist"],
+                answer: 1
+              },
+              {
+                q: "What special instrument did Marat Gabdullin, the Concertmaster, invent?",
+                options: ["The Super-Cello", "The Violinatron", "The Electric Flute"],
+                answer: 1
+              }
+            ]
+          },
+          families: {
+            title: "Instrument Families",
+            color: "text-blue-600",
+            bg: "bg-blue-100",
+            questions: [
+              {
+                q: "Which family of instruments is placed at the very back of the orchestra to support the rhythm?",
+                options: ["Woodwinds", "Percussion", "Strings"],
+                answer: 1
+              },
+              {
+                q: "If I am playing an instrument by buzzing my lips into a metal mouthpiece, what family is it?",
+                options: ["Brass", "Strings", "Woodwinds"],
+                answer: 0
+              }
+            ]
+          },
+          composers: {
+            title: "World Tour",
+            color: "text-green-600",
+            bg: "bg-green-100",
+            composers: [
+              {
+                id: "bartok",
+                name: "Béla Bartók",
+                imageName: "Béla Bartók.jpeg",
+                piece: "Romanian Folk Dances",
+                bio: "By the time he was in his early 20s, Béla Bartók was a very skilled composer, writing music in the style of famous German composers. But something was missing—his music didn't yet feel fully alive. Then, he discovered the folk music of his homeland, and everything changed! He became fascinated with the songs and dances of the people around him. Bartók traveled to villages in Hungary, Romania, and other nearby places, collecting thousands of folk tunes. These songs inspired him and made his music even more exciting. From then on, the rhythms, melodies, and feelings of folk music appeared in everything he wrote.",
+                elements: ["Rhythms that feel different: bouncy, uneven, or 'skip around'.", "Simple but catchy melodies.", "Changes in mood (proud, playful, gentle).", "Energy and drive. Your toes might even tap along!", "Folk-inspired ornaments (twists and turns)."]
+              },
+              {
+                id: "farrenc",
+                name: "Louise Farrenc",
+                imageName: "Louise Farrenc.jpeg",
+                piece: "Symphony No. 1 in C minor (III. Minuetto)",
+                bio: "Louise Farrenc (1804-1875) was a remarkable musician and composer. She was the only woman in the nineteenth century to be hired as a professor of music at the prestigious Paris Conservatory. Farrenc was a skilled pianist and an accomplished composer, especially of symphonies and chamber music. During her lifetime, she was highly admired, although she earned less than her male colleagues. She also co-edited a book called Treasures of Pianists, showing her deep interest in music from earlier centuries, which influenced her own compositions.",
+                elements: ["Form (Structure): Listen for the ABA structure (Minuetto -> Trio -> Minuetto).", "Rhythm and Dance Character: The steady, graceful beat of the Minuetto.", "Dynamics and Expression: Contrasts in loud and soft passages highlight the drama."]
+              },
+              {
+                id: "tchaikovsky",
+                name: "Pyotr Ilyich Tchaikovsky",
+                imageName: "Pyotr Ilyich Tchaikovsky.jpeg",
+                piece: "“Waltz of the Flowers” from The Nutcracker",
+                bio: "The waltz is a famous dance that many people connect with the city of Vienna, especially because of the composer Johann Strauss, who is often called the “King of the Waltz.” But Pyotr Ilyich Tchaikovsky took the waltz to a new level. Because he was trained as a symphonic composer and loved writing for ballet, his waltzes were not just pretty dance tunes for parties. They were written to tell a story on stage, supporting dancers, characters, and dramatic action. His melodies are beautiful and memorable.",
+                elements: ["Rhythm and Meter: The steady triple meter (1-2-3, 1-2-3) that defines the waltz.", "Melody: Long, lyrical melodies introduced by the horns and expanded by strings.", "Development: The texture becomes fuller and more brilliant, leading to a joyful conclusion."]
+              },
+              {
+                id: "strauss",
+                name: "Johann Strauss II",
+                imageName: "Johann Strauss II.jpeg",
+                piece: "Thunder and Lightning Polka",
+                bio: "Johann Strauss II was born on October 25, 1825, in Vienna, Austria, and died there on June 3, 1899. He became known as the “Waltz King” because of his many famous Viennese waltzes and operettas. He was the eldest son of Johann Strauss I, who was also a well-known composer. His father did not want him to become a musician and encouraged him to pursue a different career. As a result, Strauss II began working as a bank clerk. However, he secretly studied the violin, and in 1844 he formed and conducted his own dance orchestra at a restaurant in Vienna.",
+                elements: ["Rhythm and Tempo: Quick duple meter (1-2, 1-2) typical of a polka.", "Sharp rhythmic accents that create the 'thunder and lightning' effect.", "Melody: Bright, playful main themes introduced by woodwinds and strings."]
+              },
+              {
+                id: "brahms",
+                name: "Johannes Brahms",
+                imageName: "Johannes Brahms.jpeg",
+                piece: "Hungarian Dance No. 5",
+                bio: "Johannes Brahms (born May 7, 1833, Hamburg [Germany]—died April 3, 1897, Vienna, Austria-Hungary [now in Austria]) was a German composer and pianist of the Romantic period, who wrote symphonies, concerti, chamber music, piano works, choral compositions, and more than 200 songs. Brahms was the great master of symphonic and sonata style in the second half of the 19th century. He can be viewed as an advocate for the Classical tradition of Joseph Haydn, Wolfgang Amadeus Mozart, and Ludwig van Beethoven in a period when the standards of this tradition were being questioned or overturned by the Romantics.",
+                elements: ["Rich harmonies: Dense, Romantic harmonies with complex chord progressions.", "Lyrical melodies: Long, expressive melodies that feel singing and heartfelt.", "Rhythmic complexity: Intricate rhythms, syncopation, and cross-rhythms give energy and drive."]
+              },
+              {
+                id: "komitas",
+                name: "Komitas",
+                imageName: "Komitas.jpeg",
+                piece: "Etchmiadzin Dance",
+                bio: "Komitas was an Armenian composer and ethnomusicologist who helped create a distinct national musical style for Armenia. He was born on October 8, 1869, in Kütahya, in the Ottoman Empire (now part of Turkey), and died on October 22, 1935, in Paris, France. Orphaned at the age of 11, he was sent to study sacred (liturgical) singing at a seminary in Vagarshapat (now Ejmiadzin), Armenia. He graduated in 1893 and took the name “Komitas,” honoring a seventh-century Armenian hymn writer.",
+                elements: ["Cultural Character: Captures the spirit of community dance and national identity.", "Rhythm and Meter: Strong, driving rhythm with accented beats.", "The pulse feels grounded and earthy, suggesting communal dancing."]
+              },
+              {
+                id: "copland",
+                name: "Aaron Copland",
+                imageName: "Aaron Copland.jpeg",
+                piece: "Hoe-down from “Rodeo”",
+                bio: "Aaron Copland (November 14, 1900 – December 2, 1990) was an American composer celebrated for creating music that expressed a distinctly American style. Born in Brooklyn, New York, to Russian-Jewish immigrant parents, Copland began studying piano with his older sister and decided at age 15 that he wanted to become a composer. Early in his training, he studied harmony through correspondence courses, despite limited resources and few artistic opportunities in his environment. In the 1930s, Copland shifted toward composing music that could connect with a broad audience.",
+                elements: ["Rhythm & Dance Feel: Strong, lively rhythms of a country dance.", "Syncopation: When some beats are louder than others, making it exciting.", "Folk Influence: Inspired by American folk songs, cowboy dances, and square dances."]
+              },
+              {
+                id: "bernstein",
+                name: "Leonard Bernstein",
+                imageName: "Leonard Bernstein.jpeg",
+                piece: "West Side Story Overture",
+                bio: "Leonard Bernstein (born August 25, 1918, Lawrence, Massachusetts—died October 14, 1990, New York, New York) was an American conductor, composer, and pianist noted for his accomplishments in both classical and popular music, for his flamboyant conducting style, and for his talent as a teacher, especially in concerts for young people. Bernstein played piano from age 10. He attended Boston Latin School and Harvard University. In addition to his work in classical music, Bernstein achieved fame as a composer for the theater. His most celebrated work is the 1957 musical West Side Story.",
+                elements: ["Rhythm & Beat: A mix of styles including jazz with swinging, syncopated beats.", "Latin rhythms giving the music energy and a dance-like feel.", "Storytelling: Rhythms and melodies that show excitement, tension, or romance."]
+              },
+              {
+                id: "stravinsky",
+                name: "Igor Stravinsky",
+                imageName: "Igor Stravinsky.jpeg",
+                piece: "“Finale” from Firebird Suite",
+                bio: "Igor Stravinsky wrote The Firebird, a ballet based on an old Russian fairy tale. It tells the story of a brave prince, a magical glowing bird called the Firebird, and a wicked sorcerer named Kashchei. The ballet first premiered in 1910 in Paris and quickly made Stravinsky famous. He later created shorter concert versions called the Firebird Suite, which orchestras still perform today. The music helps tell the story without words. When the Firebird appears, the music sounds bright, sparkling, and light. When the evil sorcerer shows up, the music becomes darker and more powerful.",
+                elements: ["Rhythm & Beat: Changing rhythms that speed up and slow down to build drama.", "Storytelling & Emotional Impact: The finale represents the triumph of the Firebird over evil.", "Listen for how the ending feels exciting, magical, and victorious."]
+              }
+            ],
+            questions: [
+              {
+                q: "Which composer was the ONLY female music professor at the Paris Conservatory in the 1800s?",
+                options: ["Louise Farrenc", "Clara Schumann", "Béla Bartók"],
+                answer: 0
+              },
+              {
+                q: "Aaron Copland's 'Hoe-down' features a sound inspired by what?",
+                options: ["Russian fairy tales", "Cowboys and American square dances", "Parisian waltzes"],
+                answer: 1
+              },
+              {
+                q: "Which composer is known as the 'Waltz King' but originally worked as a bank clerk?",
+                options: ["Johannes Brahms", "Igor Stravinsky", "Johann Strauss II"],
+                answer: 2
+              }
+            ]
+          },
+          etiquette: {
+            title: "Manners & Words",
+            color: "text-orange-600",
+            bg: "bg-orange-100",
+            questions: [
+              {
+                q: "When the orchestra is warming up on stage, what are they doing?",
+                options: ["Playing the concert already", "Preparing their instruments and bodies to perform", "Trying to be as loud as possible"],
+                answer: 1
+              },
+              {
+                q: "When is the correct time to clap and cheer?",
+                options: ["In the middle of a beautiful solo", "Whenever you feel like it", "When the performance has concluded and the Maestro drops their hands"],
+                answer: 2
+              }
+            ]
+          }
+        };
+
+        function ModuleScreen({ moduleId, onComplete, onBack }) {
+          const data = moduleData[moduleId];
+          const [step, setStep] = useState(0); 
+          const [selectedAnswer, setSelectedAnswer] = useState(null);
+          const [showFeedback, setShowFeedback] = useState(false);
+          const [isCorrect, setIsCorrect] = useState(false);
+          const [expandedComposer, setExpandedComposer] = useState(null);
+
+          const handleImageError = (e) => {
+            e.target.onerror = null; 
+            e.target.src = `https://ui-avatars.com/api/?name=Music+Photo&background=e2e8f0&color=64748b&size=400`;
+          };
+
+          const handleAnswer = (index) => {
+            if (showFeedback) return;
+            
+            setSelectedAnswer(index);
+            const correct = index === data.questions[step - 1].answer;
+            setIsCorrect(correct);
+            setShowFeedback(true);
+
+            setTimeout(() => {
+              setShowFeedback(false);
+              setSelectedAnswer(null);
+              if (correct) {
+                if (step < data.questions.length) {
+                  setStep(step + 1);
+                } else {
+                  onComplete();
+                }
+              }
+            }, 2000);
+          };
+
+          const renderLearnContent = () => {
+            switch (moduleId) {
+              case 'leaders':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold text-center text-slate-800 mb-6">Meet Your Orchestra Leaders</h3>
+                    
+                    <div className="bg-white rounded-2xl shadow-md border-2 border-purple-100 overflow-hidden flex flex-col md:flex-row">
+                      <div className="md:w-1/3 bg-purple-200 flex items-center justify-center p-6 shrink-0">
+                        <img 
+                          src={`${GITHUB_BASE_URL}/Luca Antonucci.jpeg`} 
+                          onError={handleImageError}
+                          alt="Luca Antonucci" 
+                          className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" 
+                        />
+                      </div>
+                      <div className="p-6 md:w-2/3 max-h-80 overflow-y-auto">
+                        <h4 className="text-2xl font-bold text-purple-900">Luca Antonucci</h4>
+                        <p className="text-purple-600 font-bold mb-3 uppercase tracking-wider text-sm">The Maestro (Conductor)</p>
+                        <p className="text-slate-700 text-sm mb-4">
+                          A versatile conductor with a passion for creating community through music, Luca Antonucci is equally at home in orchestra, opera, and new music. He has performed and assisted in the US, Europe, and Latin America, in halls such as Boston Symphony Hall, Carnegie Hall, Tanglewood, the Wiener Konzerthaus, Argentina's Centro Cultural Kirchner, Cape Town City Hall, Soweto's historic Regina Mundi Church, and many others.
+                          <br/><br/>
+                          He currently serves as the Director of Orchestras at Oklahoma State University, Music Director of Boston Summer Opera and Artistic Director of the Open Door Ensembles of Boston, as well as a cover conductor for the Portland Symphony (ME), and as a member of the music staff of the Berkshire Opera Festival (MA), where he is Assistant Conductor and Chorus Master.
+                          <br/><br/>
+                          Recent appearances include as guest conductor with the Spectrum Orchestra in Bloomfield Hills, MI and as Assistant Conductor with The Washington Chorus on its concert tour to Buenos Aires... A champion of new music and works by composers from historically underrepresented backgrounds...
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-md border-2 border-purple-100 overflow-hidden flex flex-col md:flex-row">
+                      <div className="md:w-1/3 bg-purple-200 flex items-center justify-center p-6 shrink-0">
+                        <img 
+                          src={`${GITHUB_BASE_URL}/Marat Gabdullin.jpeg`} 
+                          onError={handleImageError}
+                          alt="Marat Gabdullin" 
+                          className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" 
+                        />
+                      </div>
+                      <div className="p-6 md:w-2/3 max-h-80 overflow-y-auto">
+                        <h4 className="text-2xl font-bold text-purple-900">Marat Gabdullin</h4>
+                        <p className="text-purple-600 font-bold mb-3 uppercase tracking-wider text-sm">The Concertmaster</p>
+                        <p className="text-slate-700 text-sm mb-4">
+                          Born in Russia, Marat Gabdullin is one of today's foremost violinists of Oklahoma, with a wide-ranging diversity of cross-cultural appeal. As an associate concertmaster of the Oklahoma City Philharmonic and concertmaster of the Norman Philharmonic, Dr. Gabdullin is involved in nearly every music event around the state of Oklahoma performing with orchestras and chamber ensembles. 
+                          <br/><br/>
+                          An award-winning video producer, Dr. Gabdullin also regularly records for movie productions. Marat Gabdullin has won many international competitions and also holds a gold medal of the Delphic Games. 
+                          <br/><br/>
+                          In addition to his career as a classical violinist, Marat is also an entrepreneur and inventor. He is a founder of the Volta Strings Inc. and also holds a patent for his invention of a new type of hybrid electric violin called "Violinatron".
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+
+              case 'families':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold text-center text-slate-800 mb-4">The Orchestra Diagram</h3>
+                    
+                    <div className="bg-slate-100 p-2 rounded-2xl shadow-inner text-center border-4 border-slate-300">
+                      <img 
+                          src={`${GITHUB_BASE_URL}/Orchestra Diagram.jpeg`} 
+                          onError={handleImageError}
+                          alt="Orchestra Diagram" 
+                          className="w-full h-auto rounded-xl shadow-sm" 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                         <h4 className="font-bold text-blue-800 text-lg">🎻 Strings</h4>
+                         <p className="text-sm text-slate-700 mt-1">Played by bowing or plucking. Includes Violin, Viola, Cello, Double Bass, and Harp.</p>
+                       </div>
+                       <div className="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-r-lg">
+                         <h4 className="font-bold text-teal-800 text-lg">🎷 Woodwinds</h4>
+                         <p className="text-sm text-slate-700 mt-1">Played using air, often with a wooden "reed". Includes Flute, Clarinet, Oboe, and Bassoon.</p>
+                       </div>
+                       <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+                         <h4 className="font-bold text-amber-800 text-lg">🎺 Brass</h4>
+                         <p className="text-sm text-slate-700 mt-1">Metal tubes! Played by buzzing lips into a mouthpiece. Includes Trumpet, Trombone, Horn, Tuba.</p>
+                       </div>
+                       <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg">
+                         <h4 className="font-bold text-orange-800 text-lg">🥁 Percussion</h4>
+                         <p className="text-sm text-slate-700 mt-1">Anything you hit, shake, or scrape! Includes Timpani, Snare Drum, Triangle, Xylophone.</p>
+                       </div>
+                    </div>
+                  </div>
+                );
+
+              case 'composers':
+                return (
+                  <div className="space-y-4">
+                    <h3 className="text-2xl font-bold text-center text-slate-800 mb-6">The Composer Passport</h3>
+                    <p className="text-center text-slate-600 mb-4">Click a composer to expand and read their history!</p>
+                    
+                    {data.composers.map((composer, idx) => (
+                      <div key={idx} className="border-2 border-green-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300">
+                        <button 
+                          onClick={() => setExpandedComposer(expandedComposer === idx ? null : idx)}
+                          className="w-full flex items-center justify-between p-4 bg-green-50 hover:bg-green-100 transition-colors"
+                        >
+                          <div className="flex items-center gap-4 text-left">
+                            <img 
+                              src={`${GITHUB_BASE_URL}/${composer.imageName}`} 
+                              onError={handleImageError}
+                              alt={composer.name} 
+                              className="w-12 h-12 rounded-full object-cover border-2 border-green-300 shadow-sm" 
+                            />
+                            <div className="text-left">
+                              <h4 className="font-bold text-green-900 text-lg">{composer.name}</h4>
+                              <p className="text-sm text-green-700 italic">{composer.piece}</p>
+                            </div>
+                          </div>
+                          {expandedComposer === idx ? <ChevronUp className="text-green-700 shrink-0" /> : <ChevronDown className="text-green-700 shrink-0" />}
+                        </button>
+                        
+                        {expandedComposer === idx && (
+                          <div className="p-6 bg-white border-t border-green-100 animate-fadeIn">
+                            <div className="flex gap-3 mb-4">
+                              <Info className="w-5 h-5 text-blue-500 shrink-0 mt-1" />
+                              <div className="max-h-48 overflow-y-auto pr-2">
+                                <p className="text-slate-700 text-sm leading-relaxed">{composer.bio}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-slate-50 p-4 rounded-lg">
+                              <h5 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                <Music className="w-4 h-4 text-green-600" /> 
+                                Elements to Listen For:
+                              </h5>
+                              <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
+                                {composer.elements.map((el, i) => (
+                                  <li key={i}>{el}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                );
+
+              case 'etiquette':
+                return (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold text-center text-slate-800 mb-6">Concert Survival Guide</h3>
+                    
+                    <div className="bg-orange-50 border-l-8 border-orange-400 p-6 rounded-r-2xl shadow-sm">
+                      <h4 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
+                         <MapPin className="w-6 h-6" /> 1. The Arrival
+                      </h4>
+                      <p className="text-slate-700">Once you are seated, take a moment to quietly watch the musicians on stage. You may notice that they are warming up—just like athletes do before a game. Musicians warm up their instruments and their bodies so they are fully prepared to perform their best.</p>
+                    </div>
+
+                    <div className="bg-orange-50 border-l-8 border-orange-500 p-6 rounded-r-2xl shadow-sm">
+                      <h4 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
+                         <Users className="w-6 h-6" /> 2. The Concert Begins
+                      </h4>
+                      <p className="text-slate-700 mb-2">When it is time to start, the <strong>concertmaster</strong> will walk onto the stage. The concertmaster is the leader of the violin section and the whole orchestra (after the conductor). They walk on stage first, the audience claps, and they help the orchestra tune.</p>
+                      <p className="text-slate-700">When all of the players have tuned their instruments, the concert is ready to begin. It is time for the <strong>maestro</strong>, also known as the conductor, to come on stage.</p>
+                    </div>
+
+                    <div className="bg-orange-50 border-l-8 border-orange-600 p-6 rounded-r-2xl shadow-sm">
+                      <h4 className="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
+                         <Star className="w-6 h-6" /> 3. Manners
+                      </h4>
+                      <ul className="list-disc pl-5 space-y-2 text-slate-700">
+                        <li>Just as good manners are important at home and in the classroom, they are equally important at orchestra concerts.</li>
+                        <li>Refrain from talking during the performance, as it distracts others and prevents you from listening fully.</li>
+                        <li>Do not leave your seat until the performance has concluded.</li>
+                        <li>If seated in a balcony, never throw or drop objects over the edge.</li>
+                      </ul>
+                    </div>
+                  </div>
+                );
+
+              default:
+                return null;
+            }
+          };
+
+          return (
+            <div className="flex flex-col h-full bg-white relative">
+              <div className="flex items-center p-3 md:p-4 border-b border-slate-100 shrink-0 z-10 bg-white">
+                <button onClick={onBack} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+                <h2 className={`text-xl md:text-2xl font-bold ml-2 md:ml-4 ${data.color}`}>{data.title}</h2>
+                <div className="ml-auto flex gap-1 md:gap-2">
+                  <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${step === 0 ? data.color.replace('text', 'bg') : 'bg-slate-200'}`}></div>
+                  {data.questions.map((_, idx) => (
+                     <div key={idx} className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${step === idx + 1 ? data.color.replace('text', 'bg') : 'bg-slate-200'}`}></div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex-grow p-4 md:p-8 flex flex-col items-center overflow-y-auto bg-slate-50">
+                {step === 0 ? (
+                  <div className="max-w-3xl w-full flex flex-col h-full">
+                    <div className={`flex-grow bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200`}>
+                      {renderLearnContent()}
+                    </div>
+                    
+                    <button 
+                      onClick={() => setStep(1)}
+                      className={`w-full py-4 mt-6 shrink-0 ${data.color.replace('text-', 'bg-')} hover:brightness-110 text-white text-xl md:text-2xl font-bold rounded-xl shadow-md transform transition active:scale-95 flex justify-center items-center gap-2`}
+                    >
+                      Start Quiz <ArrowRight className="w-6 h-6" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="max-w-2xl w-full flex flex-col justify-center h-full my-auto">
+                    <h3 className="text-2xl md:text-3xl font-bold text-slate-800 text-center mb-8 md:mb-12 leading-tight">
+                      {data.questions[step - 1].q}
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      {data.questions[step - 1].options.map((opt, idx) => {
+                        let btnStyle = "bg-white border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 text-slate-700";
+                        
+                        if (showFeedback && selectedAnswer === idx) {
+                          btnStyle = isCorrect 
+                            ? "bg-green-500 border-green-600 text-white scale-105 shadow-lg" 
+                            : "bg-red-500 border-red-600 text-white animate-shake";
+                        } else if (showFeedback && idx === data.questions[step - 1].answer) {
+                          btnStyle = "bg-green-100 border-green-500 text-green-800";
+                        }
+
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => handleAnswer(idx)}
+                            disabled={showFeedback}
+                            className={`w-full p-4 md:p-6 text-lg md:text-xl font-semibold rounded-xl transition-all duration-300 text-left ${btnStyle}`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {showFeedback && (
+                      <div className={`mt-8 text-center text-xl md:text-2xl font-bold animate-bounce ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                        {isCorrect ? "⭐ Brilliant! You got it!" : "Oops! Read carefully and try again!"}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        function CertificateScreen({ playerName, onRestart }) {
+          return (
+            <div className="flex-grow flex flex-col items-center justify-center p-4 md:p-8 bg-gradient-to-br from-yellow-50 via-white to-orange-50 relative overflow-y-auto">
+              <Star className="absolute top-10 left-10 w-16 h-16 text-yellow-300 fill-yellow-200 opacity-50" />
+              <Star className="absolute bottom-20 right-10 w-24 h-24 text-orange-300 fill-orange-200 opacity-50" />
+              <Music className="absolute top-20 right-20 w-12 h-12 text-blue-300 opacity-30" />
+              
+              <div className="border-[8px] md:border-[12px] border-double border-indigo-900 bg-white p-6 md:p-16 rounded-lg max-w-3xl w-full text-center shadow-2xl relative z-10 mt-8">
+                <Award className="w-16 h-16 md:w-24 md:h-24 text-yellow-500 mx-auto mb-4 md:mb-6" />
+                <h2 className="text-lg md:text-2xl font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Official Certificate of Mastery</h2>
+                <h1 className="text-3xl md:text-6xl font-extrabold text-indigo-900 mb-6 md:mb-8 font-serif italic break-words">
+                  {playerName || "Musician"}
+                </h1>
+                <p className="text-md md:text-2xl text-slate-700 leading-relaxed max-w-xl mx-auto mb-8 md:mb-10">
+                  Has successfully completed the Symphony Quest and is officially prepared for the <span className="font-bold text-indigo-900">OKC Philharmonic Dances Around the World Concert</span>.
+                </p>
+                
+                <div className="flex flex-col md:flex-row justify-center items-center md:items-end gap-8 md:gap-16 mt-8">
+                  <div className="border-t-2 border-slate-400 pt-2 w-48 order-2 md:order-1">
+                    <p className="font-bold text-slate-800">Luca Antonucci</p>
+                    <p className="text-sm text-slate-500">Maestro / Conductor</p>
+                  </div>
+                  <div className="w-20 h-20 md:w-24 md:h-24 bg-red-100 rounded-full border-4 border-red-500 flex items-center justify-center transform md:-rotate-12 shadow-md order-1 md:order-2">
+                    <span className="text-red-600 font-bold text-xs md:text-sm tracking-wider uppercase">Official<br/>Seal</span>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={onRestart}
+                className="mt-8 md:mt-12 text-indigo-600 font-bold hover:underline hover:text-indigo-800 pb-8"
+              >
+                Start Over for Next Student
+              </button>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
